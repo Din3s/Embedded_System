@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PID Motor Control Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎛️ PID Motor Control Simulator</h1>
+            <p>Learn PID control by tuning parameters and observing motor response</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <h2>Control Panel</h2>
+                
+                <div class="control-group">
+                    <h3>Target Speed</h3>
+                    <div class="slider-container">
+                        <input type="range" id="targetSpeed" min="0" max="100" value="50" class="slider">
+                        <span id="targetSpeedValue">50</span> RPM
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>PID Parameters</h3>
+                    
+                    <div class="pid-param">
+                        <label>Proportional (Kp):</label>
+                        <div class="slider-container">
+                            <input type="range" id="kp" min="0" max="5" step="0.1" value="1.0" class="slider">
+                            <span id="kpValue">1.0</span>
+                        </div>
+                    </div>
+
+                    <div class="pid-param">
+                        <label>Integral (Ki):</label>
+                        <div class="slider-container">
+                            <input type="range" id="ki" min="0" max="2" step="0.01" value="0.1" class="slider">
+                            <span id="kiValue">0.1</span>
+                        </div>
+                    </div>
+
+                    <div class="pid-param">
+                        <label>Derivative (Kd):</label>
+                        <div class="slider-container">
+                            <input type="range" id="kd" min="0" max="1" step="0.01" value="0.05" class="slider">
+                            <span id="kdValue">0.05</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Motor Parameters</h3>
+                    
+                    <div class="motor-param">
+                        <label>Inertia:</label>
+                        <div class="slider-container">
+                            <input type="range" id="inertia" min="0.1" max="2" step="0.1" value="1.0" class="slider">
+                            <span id="inertiaValue">1.0</span>
+                        </div>
+                    </div>
+
+                    <div class="motor-param">
+                        <label>Friction:</label>
+                        <div class="slider-container">
+                            <input type="range" id="friction" min="0" max="0.5" step="0.01" value="0.1" class="slider">
+                            <span id="frictionValue">0.1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="startBtn" class="btn btn-primary">Start</button>
+                    <button id="stopBtn" class="btn btn-secondary">Stop</button>
+                    <button id="resetBtn" class="btn btn-tertiary">Reset</button>
+                </div>
+            </div>
+
+            <!-- Visualization Area -->
+            <div class="visualization-area">
+                <!-- Motor Animation -->
+                <div class="motor-container">
+                    <h3>Motor Visualization</h3>
+                    <div class="motor-display">
+                        <svg id="motorSvg" width="300" height="300" viewBox="0 0 300 300">
+                            <!-- Motor Body -->
+                            <circle cx="150" cy="150" r="80" fill="#333" stroke="#666" stroke-width="3"/>
+                            
+                            <!-- Motor Shaft -->
+                            <circle cx="150" cy="150" r="10" fill="#888"/>
+                            
+                            <!-- Rotor -->
+                            <g id="rotor" transform-origin="150 150">
+                                <line x1="150" y1="80" x2="150" y2="130" stroke="#ff6b6b" stroke-width="4" stroke-linecap="round"/>
+                                <line x1="150" y1="170" x2="150" y2="220" stroke="#ff6b6b" stroke-width="4" stroke-linecap="round"/>
+                                <line x1="80" y1="150" x2="130" y2="150" stroke="#4ecdc4" stroke-width="4" stroke-linecap="round"/>
+                                <line x1="170" y1="150" x2="220" y2="150" stroke="#4ecdc4" stroke-width="4" stroke-linecap="round"/>
+                            </g>
+                            
+                            <!-- Speed indicator -->
+                            <text x="150" y="260" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">
+                                Speed: <tspan id="currentSpeedText">0</tspan> RPM
+                            </text>
+                        </svg>
+                    </div>
+                    
+                    <div class="status-indicators">
+                        <div class="status-item">
+                            <span class="label">Current Speed:</span>
+                            <span id="currentSpeed" class="value">0.0</span> RPM
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Error:</span>
+                            <span id="error" class="value">0.0</span> RPM
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Control Output:</span>
+                            <span id="controlOutput" class="value">0.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-container">
+                    <div class="chart-wrapper">
+                        <h3>Speed Response</h3>
+                        <canvas id="speedChart" width="400" height="200"></canvas>
+                    </div>
+                    
+                    <div class="chart-wrapper">
+                        <h3>PID Components</h3>
+                        <canvas id="pidChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information Panel -->
+        <div class="info-panel">
+            <h3>📚 PID Control Theory</h3>
+            <div class="theory-content">
+                <p><strong>Proportional (P):</strong> Reacts to current error. Higher values = faster response but may cause overshoot.</p>
+                <p><strong>Integral (I):</strong> Eliminates steady-state error by accumulating past errors. Too high = oscillation.</p>
+                <p><strong>Derivative (D):</strong> Predicts future error based on rate of change. Reduces overshoot and improves stability.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="pidController.js"></script>
+    <script src="motorSimulation.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
